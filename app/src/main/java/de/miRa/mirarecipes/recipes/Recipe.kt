@@ -2,7 +2,7 @@ package de.miRa.mirarecipes.recipes
 
 data class Recipe (
     val id: Int? = null,
-    val title: String? = null,
+    val title: String = "",
     val featuredImage: String? = null,
     val rating: Int? = 0,
     val tags: List<String> = listOf(),
