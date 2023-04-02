@@ -1,11 +1,11 @@
 package de.miRa.mirarecipes.ui.composables
 
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Search
@@ -16,75 +16,65 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import de.miRa.mirarecipes.recipes.Recipe
-import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
-import java.util.Locale
-import kotlin.collections.ArrayList
-
-data class TagFilter(
-    val title: String,
-    var isSelected: Boolean
-)
-
-
-fun createTagList(items: List<String>): SnapshotStateList<TagFilter> {
-    val filterTagItems = mutableStateListOf<TagFilter>()
-    items.forEach {
-        filterTagItems.add(
-            TagFilter(it, false),
-        )
-    }
-    return filterTagItems
-}
-
-fun createDummyRecepieList(): SnapshotStateList<Recipe> {
-    return mutableStateListOf(
-        Recipe(
-            title = "Pizza",
-            tags = listOf("Essen")
-        ),
-        Recipe(
-            title = "Suppe",
-            tags = listOf("Essen")
-        ),
-        Recipe(
-            title = "Nudeln",
-            tags = listOf("Nudeln")
-        )
-    )
-}
+import de.miRa.mirarecipes.recipes.RecipesViewModel
+import java.util.*
 
 @Composable
-fun RecipeListScreen() {
+fun RecipeListScreen(
+    viewModel: RecipesViewModel,
+    //navController: NavHostController
+) {
+   /* NavHost(navController = navController, startDestination = "recipeListScreen") {
+        //composable("recipeView") { RecipeView(recipe =) }
+    }*/
+
     val tagList = listOf("Essen", "Nudeln")
 
-    Column() {
-
+    Column {
         val searchInput = remember { mutableStateOf(TextFieldValue("")) }
-        val items = remember { createDummyRecepieList() }
-        val tagFiltersItems = remember { createTagList(tagList) }
 
-        SearchView(searchInput)
-        TagFilters(tagFiltersItems)
+        Row {
+            SearchView(searchInput)
+            IconButton(
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = null
+                )
+            }
+        }
+        TagFilters(
+            items = tagList,
+            onTagSelected = { tag, isSelected ->
+                viewModel.onTagSelected(tag, isSelected)
+            },
+            onRemoveAllTags = {
+                viewModel.removeAllSelectedTags()
+            }
+        )
         ItemList(
             searchInput = searchInput.value.text,
-            filterTags = tagFiltersItems,
-            items = items
+            selectedFilterTags = viewModel.selectedFilterTags,
+            items = viewModel.items
         )
     }
 }
 
 @Composable
-fun SearchView(state: MutableState<TextFieldValue>) {
+fun SearchView(
+    state: MutableState<TextFieldValue>
+) {
     TextField(
         value = state.value,
         onValueChange = { value ->
             state.value = value
         },
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
         leadingIcon = {
             Icon(
@@ -111,6 +101,7 @@ fun SearchView(state: MutableState<TextFieldValue>) {
             }
         },
         singleLine = true,
+        shape = TextFieldDefaults.outlinedShape
     )
 }
 
@@ -118,23 +109,20 @@ fun SearchView(state: MutableState<TextFieldValue>) {
 @Composable
 fun ItemList(
     searchInput: String,
-    filterTags: List<TagFilter>,
+    selectedFilterTags: SnapshotStateList<String>,
     items: List<Recipe>
 ) {
     var filteredItems: List<Recipe>
     LazyColumn(modifier = Modifier.fillMaxWidth()) {
 
-        filteredItems = if (searchInput.isEmpty() && filterTags.all { !it.isSelected }) {
+        filteredItems = if (searchInput.isEmpty() && selectedFilterTags.isEmpty()) {
             items
         } else {
             val resultList = ArrayList<Recipe>()
-            for (item in items) {
-                Log.d("xxx", "filterTags $filterTags ${filterTags.filter { it.isSelected }.map { it.title }}")
+            items.forEach { item ->
                 if (item.title.lowercase(Locale.getDefault())
-                        .contains(searchInput.lowercase(Locale.getDefault())) ||
-                    item.tags.any { tag ->
-                        tag in filterTags.filter { it.isSelected }.map { it.title }
-                    }
+                        .contains(searchInput.lowercase(Locale.getDefault())) &&
+                    item.tags.any(selectedFilterTags::contains) // TODO when more than one tag its not working
                 ) {
                     resultList.add(item)
                 }
@@ -143,9 +131,9 @@ fun ItemList(
         }
 
         items(filteredItems) { filteredItem ->
-            ItemListItem(
-                ItemText = filteredItem.title,
-                onItemClick = { 
+            RecipeListItem(
+                recipe = filteredItem,
+                onItemClick = {
                     // TODO navigate to subscreen
                 }
             )
@@ -157,24 +145,25 @@ fun ItemList(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TagFilters(
-    items: List<TagFilter>,
+    items: List<String>,
+    onTagSelected: (String, Boolean) -> Unit,
+    onRemoveAllTags: () -> Unit
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
-        items.forEach {
-            var selected by remember { mutableStateOf(it.isSelected) }
+        items.forEach { tag ->
+            var isSelected by remember { mutableStateOf(false) }
             FilterChip(
                 modifier = Modifier.padding(8.dp),
-                selected = selected,
+                selected = isSelected,
                 onClick = {
-                    selected = !selected
-                    it.isSelected = !it.isSelected
-                    Log.d("xxx", "selected ${it.title} ${it.isSelected}")
+                    isSelected = !isSelected
+                    onTagSelected(tag, isSelected)
                 },
-                label = { Text(it.title) },
+                label = { Text(tag) },
                 leadingIcon = {
-                    if (selected) {
+                    if (isSelected) {
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
@@ -184,26 +173,37 @@ fun TagFilters(
                 }
             )
         }
+        AssistChip(
+            onClick = { onRemoveAllTags() },
+            label = {
+                Icon(Icons.Default.Close, contentDescription = null)
+            }
+        )
     }
 }
 
 @Composable
-fun ItemListItem(ItemText: String, onItemClick: (String) -> Unit) {
-    Row(
+fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
+    Column(
         modifier = Modifier
-            .clickable(onClick = { onItemClick(ItemText) })
-            .height(57.dp)
+            .clickable(onClick = { onItemClick(recipe) })
             .fillMaxWidth()
             .padding(PaddingValues(8.dp, 16.dp))
     ) {
-        Text(text = ItemText, fontSize = 18.sp, color = Color.White)
+        Text(text = recipe.title, fontSize = 18.sp)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            recipe.tags.forEach {
+                Text(text = it, fontSize = 12.sp)
+            }
+        }
     }
 }
 
+/*
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun DefaultPreview() {
     MiRaRecipesTheme {
-        RecipeListScreen()
+        RecipeListScreen(RecipesViewModel())
     }
-}
+}*/

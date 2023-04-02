@@ -3,35 +3,35 @@ package de.miRa.mirarecipes
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import de.miRa.mirarecipes.recipes.RecipesViewModel
 import de.miRa.mirarecipes.ui.composables.RecipeListScreen
 import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
 
 class MainActivity : ComponentActivity() {
+
+    val recipesViewModel = RecipesViewModel()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             MiRaRecipesTheme {
-                // A surface container using the 'background' color from the theme
+                val navController = rememberNavController()
+             /*   NavHost(navController = navController, startDestination = "profile") {
+                    composable("recipeListScreen") { RecipeListScreen(viewModel = recipesViewModel, navController = navController)}
+                  //  composable("recipeView") { RecipeView(recipe = ) }
+                }*/
+
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    RecipeListScreen()
+                    RecipeListScreen(recipesViewModel, /*navController*/)
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DefaultPreview() {
-    MiRaRecipesTheme {
-        RecipeListScreen()
     }
 }
