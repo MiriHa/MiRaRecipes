@@ -2,5 +2,24 @@
     <string name="app_name">MiRaRecipes</string>
 
     <string name="recipeView_Ingredients">Ingredients</string>
-    <string name="recipeView_Instructions">Instructions</string>
+    <string name="recipeView_Instructions">Directions</string>
+
+    <string name="cookbook_search">Search</string>
+
+    <string name="cookbook_edit_save">Save</string>
+    <string name="cookbook_edit_title_hint">Title</string>
+    <string name="cookbook_edit_tags_title">Tags</string>
+    <string name="cookbook_edit_tags_hint">Select existing or create new</string>
+    <string name="cookbook_edit_ingredients_title">Ingredients</string>
+    <string name="cookbook_edit_ingredients_hint">Add ingredient</string>
+    <string name="cookbook_edit_directions_title">Directions</string>
+    <string name="cookbook_edit_directions_hint">Add step</string>
+    <string name="cookbook_edit_link_hint">Source</string>
+    <string name="cookbook_edit_link_title">Link</string>
+
+
+    <string name="cookbook_title">Your Cookbook</string>
+    <string name="cookbook_title_find">Find</string>
+    <string name="cookbook_title_recents">Recent</string>
+    <string name="cookbook_title_all">All</string>
 </resources>

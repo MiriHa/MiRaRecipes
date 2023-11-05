@@ -2,9 +2,16 @@ package de.miRa.mirarecipes.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val OrangePrimary = Color(0xFFf9831c)
-val OrangeAccent = Color(0xFFffa85d)
-val ErrorGreen = Color(0xFFedff00)
+val Primary = Color(0xFF8fc433)
+val Secondary = Color(0xFF7bab02)
+val Tertiary = Color(0xFFd43613)
 
-val BackgroundBeige = Color(0xFFfffdf9)
-val BackgroundDark = Color(0xFF202123)
+val ErrorRed = Color(0xFFba1a1a)
+
+val White = Color(0xFFffffff)
+val LightGreen = Color(0xFFf6f7f0)
+val Gery = Color(0xFF9da197)
+val DarkGrey = Color(0xFF202123)
+
+
+
