@@ -4,7 +4,7 @@ data class Recipe (
     val id: Int? = null,
     val title: String = "",
     val featuredImage: String? = null,
-    val tags: List<FilterTag> = listOf(),
+    val tags: List<String> = listOf(),
     val sourceUrl: String? = null,
     val description: String? = null,
     val cookingInstructions: List<String>? = null,

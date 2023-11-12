@@ -37,7 +37,6 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.miRa.mirarecipes.recipes.FilterTag
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
 import java.util.Locale
@@ -68,16 +67,13 @@ fun RecipeListScreen(
         }
         TagFilters(
             items = uiState.filterTags,
-            onTagSelected = { tag ->
-                viewModel.onTagSelected(tag)
-            },
-            onRemoveAllTags = {
-                viewModel.removeAllSelectedTags()
-            }
+            selectedFilterTags = uiState.selectedTags,
+            onTagSelected = { viewModel.onTagSelected(it) },
+            onRemoveAllTags = { viewModel.removeAllSelectedTags() }
         )
         ItemList(
             searchInput = searchInput.value.text,
-            selectedFilterTags = uiState.filterTags.filter { it.isSelected },
+            selectedFilterTags = uiState.selectedTags,
             items = uiState.recipesItems
         )
     }
@@ -128,7 +124,7 @@ fun SearchView(
 @Composable
 fun ItemList(
     searchInput: String,
-    selectedFilterTags: List<FilterTag>,
+    selectedFilterTags: List<String>,
     items: List<Recipe>
 ) {
     var filteredItems: List<Recipe>
@@ -144,7 +140,7 @@ fun ItemList(
                     .takeIf { searchInput.isNotEmpty() } ?: true
 
                 val isIncludedInTagInput = selectedFilterTags.all { selectedFilterTagItem ->
-                    item.tags.map { it.title }.contains(selectedFilterTagItem.title)
+                    item.tags.contains(selectedFilterTagItem)
                 }.takeIf { selectedFilterTags.isNotEmpty() } ?: true
 
                 if (isIncludedInSearchInput && isIncludedInTagInput) {
@@ -169,23 +165,31 @@ fun ItemList(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TagFilters(
-    items: List<FilterTag>,
-    onTagSelected: (FilterTag) -> Unit,
+    items: List<String>,
+    selectedFilterTags: List<String>,
+    onTagSelected: (String) -> Unit,
     onRemoveAllTags: () -> Unit
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         items.forEach { tag ->
+            val isSelected by remember(selectedFilterTags) {
+                mutableStateOf(
+                    selectedFilterTags.contains(
+                        tag
+                    )
+                )
+            }
             FilterChip(
                 modifier = Modifier.padding(8.dp),
-                selected = tag.isSelected,
+                selected = selectedFilterTags.contains(tag),
                 onClick = {
                     onTagSelected(tag)
                 },
-                label = { Text(tag.title) },
+                label = { Text(tag) },
                 leadingIcon = {
-                    if (tag.isSelected) {
+                    if (selectedFilterTags.contains(tag)) {
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
@@ -220,7 +224,7 @@ fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
         Text(text = recipe.title, fontSize = 18.sp)
         Row(modifier = Modifier.fillMaxWidth()) {
             recipe.tags.forEach {
-                Text(text = it.title, fontSize = 12.sp)
+                Text(text = it, fontSize = 12.sp)
             }
         }
     }
