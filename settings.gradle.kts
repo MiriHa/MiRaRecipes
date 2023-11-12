@@ -12,5 +12,7 @@ dependencyResolutionManagement {
         mavenCentral()
     }
 }
-rootProject.name = "MiRaRecipes"
-include ':app'
+
+rootProject.name = "MiRaRecipesTest"
+include(":app")
+ 

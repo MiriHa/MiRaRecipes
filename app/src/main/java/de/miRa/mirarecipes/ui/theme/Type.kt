@@ -8,7 +8,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import de.miRa.mirarecipes.R
 
-
 object MiraRecipesFonts {
     val Regular: FontFamily = FontFamily(
         Font(R.font.ubuntu_light, FontWeight.Light),
@@ -76,4 +75,4 @@ val Typography = Typography(
         lineHeight = 10.sp,
     ),
 
-)
+    )

@@ -177,13 +177,10 @@ fun TagFilters(
         modifier = Modifier.fillMaxWidth(),
     ) {
         items.forEach { tag ->
-            // val isSelected by remember(tag.isSelected) { mutableStateOf(tag.isSelected) }
-
             FilterChip(
                 modifier = Modifier.padding(8.dp),
                 selected = tag.isSelected,
                 onClick = {
-                    // tag.isSelected = !tag.isSelected
                     onTagSelected(tag)
                 },
                 label = { Text(tag.title) },
