@@ -1,7 +1,14 @@
 package de.miRa.mirarecipes.ui.composables
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -9,29 +16,41 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import de.miRa.mirarecipes.recipes.FilterTag
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
-import java.util.*
+import java.util.Locale
 
 @Composable
 fun RecipeListScreen(
     viewModel: RecipesViewModel,
     //navController: NavHostController
 ) {
-   /* NavHost(navController = navController, startDestination = "recipeListScreen") {
-        //composable("recipeView") { RecipeView(recipe =) }
-    }*/
-
-    val tagList = listOf("Essen", "Nudeln")
+    /* NavHost(navController = navController, startDestination = "recipeListScreen") {
+         //composable("recipeView") { RecipeView(recipe =) }
+     }*/
+    val uiState by viewModel.uiState.collectAsState()
 
     Column {
         val searchInput = remember { mutableStateOf(TextFieldValue("")) }
@@ -48,9 +67,9 @@ fun RecipeListScreen(
             }
         }
         TagFilters(
-            items = tagList,
-            onTagSelected = { tag, isSelected ->
-                viewModel.onTagSelected(tag, isSelected)
+            items = uiState.filterTags,
+            onTagSelected = { tag ->
+                viewModel.onTagSelected(tag)
             },
             onRemoveAllTags = {
                 viewModel.removeAllSelectedTags()
@@ -58,8 +77,8 @@ fun RecipeListScreen(
         )
         ItemList(
             searchInput = searchInput.value.text,
-            selectedFilterTags = viewModel.selectedFilterTags,
-            items = viewModel.items
+            selectedFilterTags = uiState.filterTags.filter { it.isSelected },
+            items = uiState.recipesItems
         )
     }
 }
@@ -109,7 +128,7 @@ fun SearchView(
 @Composable
 fun ItemList(
     searchInput: String,
-    selectedFilterTags: SnapshotStateList<String>,
+    selectedFilterTags: List<FilterTag>,
     items: List<Recipe>
 ) {
     var filteredItems: List<Recipe>
@@ -120,10 +139,15 @@ fun ItemList(
         } else {
             val resultList = ArrayList<Recipe>()
             items.forEach { item ->
-                if (item.title.lowercase(Locale.getDefault())
-                        .contains(searchInput.lowercase(Locale.getDefault())) &&
-                    item.tags.any(selectedFilterTags::contains) // TODO when more than one tag its not working
-                ) {
+                val isIncludedInSearchInput = item.title.lowercase(Locale.getDefault())
+                    .contains(searchInput.lowercase(Locale.getDefault()))
+                    .takeIf { searchInput.isNotEmpty() } ?: true
+
+                val isIncludedInTagInput = selectedFilterTags.all { selectedFilterTagItem ->
+                    item.tags.map { it.title }.contains(selectedFilterTagItem.title)
+                }.takeIf { selectedFilterTags.isNotEmpty() } ?: true
+
+                if (isIncludedInSearchInput && isIncludedInTagInput) {
                     resultList.add(item)
                 }
             }
@@ -145,25 +169,26 @@ fun ItemList(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TagFilters(
-    items: List<String>,
-    onTagSelected: (String, Boolean) -> Unit,
+    items: List<FilterTag>,
+    onTagSelected: (FilterTag) -> Unit,
     onRemoveAllTags: () -> Unit
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
     ) {
         items.forEach { tag ->
-            var isSelected by remember { mutableStateOf(false) }
+            // val isSelected by remember(tag.isSelected) { mutableStateOf(tag.isSelected) }
+
             FilterChip(
                 modifier = Modifier.padding(8.dp),
-                selected = isSelected,
+                selected = tag.isSelected,
                 onClick = {
-                    isSelected = !isSelected
-                    onTagSelected(tag, isSelected)
+                    // tag.isSelected = !tag.isSelected
+                    onTagSelected(tag)
                 },
-                label = { Text(tag) },
+                label = { Text(tag.title) },
                 leadingIcon = {
-                    if (isSelected) {
+                    if (tag.isSelected) {
                         Icon(
                             imageVector = Icons.Filled.Done,
                             contentDescription = null,
@@ -183,6 +208,11 @@ fun TagFilters(
 }
 
 @Composable
+fun Header() {
+
+}
+
+@Composable
 fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
     Column(
         modifier = Modifier
@@ -193,7 +223,7 @@ fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
         Text(text = recipe.title, fontSize = 18.sp)
         Row(modifier = Modifier.fillMaxWidth()) {
             recipe.tags.forEach {
-                Text(text = it, fontSize = 12.sp)
+                Text(text = it.title, fontSize = 12.sp)
             }
         }
     }

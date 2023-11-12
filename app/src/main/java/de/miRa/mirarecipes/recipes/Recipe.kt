@@ -4,12 +4,16 @@ data class Recipe (
     val id: Int? = null,
     val title: String = "",
     val featuredImage: String? = null,
-    val rating: Int? = 0,
-    val tags: List<String> = listOf(),
+    val tags: List<FilterTag> = listOf(),
     val sourceUrl: String? = null,
     val description: String? = null,
-    val cookingInstructions: String? = null,
-    val ingredients: List<String> = listOf(),
+    val cookingInstructions: List<String>? = null,
+    val ingredients: List<Ingredient> = listOf(),
     val dateAdded: String? = null,
     val dateUpdated: String? = null,
+)
+
+data class Ingredient(
+    val title: String,
+    val amount: String
 )
