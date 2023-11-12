@@ -13,6 +13,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MiRaRecipesTest"
+rootProject.name = "MiRaRecipes"
 include(":app")
  
