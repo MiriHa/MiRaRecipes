@@ -10,5 +10,5 @@ val ErrorRed = Color(0xFFba1a1a)
 
 val White = Color(0xFFffffff)
 val LightGreen = Color(0xFFf6f7f0)
-val Gery = Color(0xFF9da197)
+val Grey = Color(0xFF9da197)
 val DarkGrey = Color(0xFF202123)

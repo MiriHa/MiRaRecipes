@@ -1,6 +1,8 @@
 package de.miRa.mirarecipes.ui.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -8,39 +10,42 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import de.miRa.mirarecipes.recipes.FilterTag
+import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
+import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
+import de.miRa.mirarecipes.ui.theme.Spacings
 import java.util.Locale
+import kotlin.math.PI
+import kotlin.math.cos
 
 @Composable
 fun RecipeListScreen(
@@ -51,84 +56,49 @@ fun RecipeListScreen(
          //composable("recipeView") { RecipeView(recipe =) }
      }*/
     val uiState by viewModel.uiState.collectAsState()
+    val backgroundColor = MaterialTheme.colorScheme.background
 
-    Column {
-        val searchInput = remember { mutableStateOf(TextFieldValue("")) }
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.primary)
+            .drawBehind { drawBackgroundWave(backgroundColor) } // TODO drawWithCache?
+            .padding(Spacings.m)
+    ) {
+        var searchInput by remember { mutableStateOf(TextFieldValue("")) }
 
-        Row {
-            SearchView(searchInput)
+        Row(modifier = Modifier.fillMaxWidth()) {
+            TextField(
+                searchInput,
+                onValueChange = { searchInput = it }
+            )
             IconButton(
                 onClick = { /*TODO*/ }
             ) {
                 Icon(
-                    Icons.Default.Add,
+                    painterResource(R.drawable.icon_tune),
                     contentDescription = null
                 )
             }
         }
         TagFilters(
             items = uiState.filterTags,
-            onTagSelected = { tag ->
-                viewModel.onTagSelected(tag)
-            },
-            onRemoveAllTags = {
-                viewModel.removeAllSelectedTags()
-            }
+            selectedFilterTags = uiState.selectedTags,
+            onTagSelected = { viewModel.onTagSelected(it) },
+            onRemoveAllTags = { viewModel.removeAllSelectedTags() }
         )
         ItemList(
-            searchInput = searchInput.value.text,
-            selectedFilterTags = uiState.filterTags.filter { it.isSelected },
+            searchInput = searchInput.text,
+            selectedFilterTags = uiState.selectedTags,
             items = uiState.recipesItems
         )
     }
 }
 
 @Composable
-fun SearchView(
-    state: MutableState<TextFieldValue>
-) {
-    TextField(
-        value = state.value,
-        onValueChange = { value ->
-            state.value = value
-        },
-        modifier = Modifier
-            .fillMaxWidth(),
-        textStyle = TextStyle(color = Color.White, fontSize = 18.sp),
-        leadingIcon = {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "",
-                modifier = Modifier
-                    .padding(15.dp)
-                    .size(24.dp)
-            )
-        },
-        trailingIcon = {
-            if (state.value != TextFieldValue("")) {
-                IconButton(
-                    onClick = {
-                        state.value =
-                            TextFieldValue("")
-                    }
-                ) {
-                    Icon(
-                        Icons.Default.Close,
-                        contentDescription = "",
-                    )
-                }
-            }
-        },
-        singleLine = true,
-        shape = TextFieldDefaults.outlinedShape
-    )
-}
-
-
-@Composable
 fun ItemList(
     searchInput: String,
-    selectedFilterTags: List<FilterTag>,
+    selectedFilterTags: List<String>,
     items: List<Recipe>
 ) {
     var filteredItems: List<Recipe>
@@ -144,7 +114,7 @@ fun ItemList(
                     .takeIf { searchInput.isNotEmpty() } ?: true
 
                 val isIncludedInTagInput = selectedFilterTags.all { selectedFilterTagItem ->
-                    item.tags.map { it.title }.contains(selectedFilterTagItem.title)
+                    item.tags.contains(selectedFilterTagItem)
                 }.takeIf { selectedFilterTags.isNotEmpty() } ?: true
 
                 if (isIncludedInSearchInput && isIncludedInTagInput) {
@@ -169,38 +139,36 @@ fun ItemList(
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun TagFilters(
-    items: List<FilterTag>,
-    onTagSelected: (FilterTag) -> Unit,
+    items: List<String>,
+    selectedFilterTags: List<String>,
+    onTagSelected: (String) -> Unit,
     onRemoveAllTags: () -> Unit
 ) {
     FlowRow(
         modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.Start
     ) {
         items.forEach { tag ->
-            FilterChip(
-                modifier = Modifier.padding(8.dp),
-                selected = tag.isSelected,
-                onClick = {
-                    onTagSelected(tag)
-                },
-                label = { Text(tag.title) },
-                leadingIcon = {
-                    if (tag.isSelected) {
-                        Icon(
-                            imageVector = Icons.Filled.Done,
-                            contentDescription = null,
-                            modifier = Modifier.size(FilterChipDefaults.IconSize)
-                        )
-                    }
-                }
+            val isSelected by remember(selectedFilterTags) {
+                mutableStateOf(
+                    selectedFilterTags.contains(
+                        tag
+                    )
+                )
+            }
+            TagChip(
+                modifier = Modifier.padding(horizontal = Spacings.xxs),
+                selected = isSelected,
+                onClick = { onTagSelected(tag) },
+                label = tag
             )
         }
-        AssistChip(
-            onClick = { onRemoveAllTags() },
-            label = {
-                Icon(Icons.Default.Close, contentDescription = null)
-            }
-        )
+        if (selectedFilterTags.isNotEmpty()) {
+            IconChip(
+                onClick = { onRemoveAllTags() },
+            )
+        }
     }
 }
 
@@ -211,6 +179,9 @@ fun Header() {
 
 @Composable
 fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
+    Card {
+
+    }
     Column(
         modifier = Modifier
             .clickable(onClick = { onItemClick(recipe) })
@@ -220,17 +191,57 @@ fun RecipeListItem(recipe: Recipe, onItemClick: (Recipe) -> Unit) {
         Text(text = recipe.title, fontSize = 18.sp)
         Row(modifier = Modifier.fillMaxWidth()) {
             recipe.tags.forEach {
-                Text(text = it.title, fontSize = 12.sp)
+                Text(text = it, fontSize = 12.sp)
             }
         }
     }
 }
 
-/*
+/*fun BentleyCard(
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    onClick: () -> Unit = {},
+    content: @Composable () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        color = BentleyTheme.colors.background,
+        elevation = BentleyElevations.Cards,
+        content = content
+    )
+}*/
+
+fun DrawScope.drawBackgroundWave(color: Color) {
+    val rectWidth = size.width
+    val rectHeight = size.height
+
+    val path = Path()
+
+    val waveLength = rectWidth * 1.1
+    val waveAmplitude = rectHeight / 25
+
+    for (i in 0 until rectWidth.toInt() step 4) {
+        val x = i.toFloat()
+        val y = rectHeight / 4 + waveAmplitude * cos(2 * PI * i / waveLength + (2 * PI) / 3)
+        path.lineTo(x, y.toFloat())
+    }
+
+    path.lineTo(size.width, size.height)
+    path.lineTo(0f, size.height)
+    path.close()
+
+    drawPath(
+        path = path,
+        color = color
+    )
+}
+
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun DefaultPreview() {
+fun ScreenPreview() {
     MiRaRecipesTheme {
         RecipeListScreen(RecipesViewModel())
     }
-}*/
+}

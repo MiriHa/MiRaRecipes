@@ -22,7 +22,8 @@ private val DarkColorScheme = darkColorScheme(
     background = White,
     surface = LightGreen,
     onBackground = DarkGrey,
-    onSurface = DarkGrey
+    onSurface = DarkGrey,
+    scrim = White
 )
 
 private val LightColorScheme = lightColorScheme(
@@ -32,7 +33,8 @@ private val LightColorScheme = lightColorScheme(
     background = White,
     surface = LightGreen,
     onBackground = DarkGrey,
-    onSurface = DarkGrey
+    onSurface = DarkGrey,
+    scrim = White
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),
@@ -49,7 +51,7 @@ private val LightColorScheme = lightColorScheme(
 fun MiRaRecipesTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {
@@ -65,7 +67,7 @@ fun MiRaRecipesTheme(
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
+            window.statusBarColor = colorScheme.surface.toArgb()
             WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
         }
     }
