@@ -1,5 +1,6 @@
 package de.miRa.mirarecipes.ui.composables
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -16,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -38,6 +40,8 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
@@ -47,6 +51,31 @@ import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
 
+
+public data class Counter (
+    var counter : Int
+)
+class databaseCom{
+    var counter = Counter(0)
+
+    fun create_counter_in_DB() {
+        val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().getReference()
+        databaseReference.child("counter").push().setValue(counter, DatabaseReference.CompletionListener() {_, _ ->
+            Log.d("FIREBASE", "Counter added")
+        })
+    }
+
+    //TODO: Implement!!
+    fun retrieve_counter_from_DB()
+    {
+
+    }
+
+    fun increment_counter_in_DB()
+    {
+
+    }
+}
 @Composable
 fun RecipeListScreen(
     viewModel: RecipesViewModel,
@@ -92,8 +121,13 @@ fun RecipeListScreen(
             selectedFilterTags = uiState.selectedTags,
             items = uiState.recipesItems
         )
+        Button(onClick = { /*TODO*/ }) {
+            
+        }
     }
 }
+
+
 
 @Composable
 fun ItemList(
