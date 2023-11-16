@@ -3,10 +3,8 @@ package de.miRa.mirarecipes.ui.composables
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -17,22 +15,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.TextFieldValue
 import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.ui.theme.Spacings
-import de.miRa.mirarecipes.ui.theme.Typography
 
 @Composable
 fun TextField(
     value: TextFieldValue,
     onValueChange: (TextFieldValue) -> Unit,
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    textStyle: TextStyle = Typography.labelMedium,
+    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
     maxLines: Int = 1,
-    hint: String = "Enter text here",
+    hint: String = "",
 ) {
     BasicTextField(
         value = value,
@@ -45,25 +42,15 @@ fun TextField(
          interactionSource = interactionSource,*/
         maxLines = maxLines,
         singleLine = maxLines == 1,
-        modifier = Modifier
-            .fillMaxWidth()
+        modifier = modifier
             .background(
                 color = MaterialTheme.colorScheme.background,
                 shape = RoundedCornerShape(Spacings.l)
             )
             .padding(Spacings.s),
         decorationBox = { innerTextField ->
-            Box(
-                modifier = Modifier
-                    .background(Color.Transparent),
-
-                contentAlignment = Alignment.CenterStart
-            ) {
-
-                innerTextField()
-            }
             Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
@@ -71,18 +58,16 @@ fun TextField(
                     contentDescription = null
                 )
                 Spacer(modifier = Modifier.width(Spacings.m))
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.Start,
-                ) {
+                Box {
                     if (value.text.isEmpty()) {
                         Text(
                             text = hint,
-                            style = textStyle //TODO .withColor(if (hasError) BentleyTheme.colors.warning else BentleyTheme.colors.textFieldPlaceholderDefault),
+                            style = textStyle,
+                            color = MaterialTheme.colorScheme.inverseOnSurface,
                         )
                     }
+                    innerTextField()
                 }
-                innerTextField()
             }
         }
     )

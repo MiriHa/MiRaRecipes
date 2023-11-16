@@ -54,16 +54,6 @@ android {
     }
 }
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath ("com.google.dagger:hilt-android-gradle-plugin:2.44")
-    }
-}
-
 dependencies {
 
     implementation(libs.core.ktx)
@@ -74,9 +64,10 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+    implementation(libs.navigation)
     implementation (libs.androidx.work.runtime.ktx)
-   // implementation(platform(libs.firebase.bom))
-   // implementation(libs.firebase.realtimedatabase)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.realtimedatabase)
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.android.compiler)
@@ -93,9 +84,3 @@ dependencies {
     debugImplementation(libs.ui.tooling)
     debugImplementation(libs.ui.test.manifest)
 }
-
-/*
-kapt {
-    correctErrorTypes true
-}
-*/

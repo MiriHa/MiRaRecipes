@@ -15,5 +15,9 @@ object Spacings {
     val xxxxl: Dp = 60.dp
 }
 
+object Elevations {
+    val card: Dp = 2.dp
+}
+
 
 
