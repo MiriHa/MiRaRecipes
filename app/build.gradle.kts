@@ -62,8 +62,8 @@ dependencies {
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
-   // implementation(platform(libs.firebase.bom))
-   // implementation(libs.firebase.realtimedatabase)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.realtimedatabase)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.test.ext.junit)
