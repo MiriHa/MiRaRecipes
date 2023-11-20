@@ -1,12 +1,11 @@
 package de.miRa.mirarecipes.ui.composables
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -43,13 +42,13 @@ fun TagChip(
         interactionSource = interactionSource,
         label = { Text(label) },
         leadingIcon = leadingIcon ?: {
-            if (selected) {
+            /* TODO if (selected) {
                 Icon(
                     imageVector = Icons.Filled.Done,
                     contentDescription = null,
                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                 )
-            }
+            }*/
         },
         shape = RoundedCornerShape(Spacings.l),
         colors = FilterChipDefaults.filterChipColors(
@@ -69,7 +68,6 @@ fun TagChip(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun IconChip(
     onClick: () -> Unit,
@@ -95,5 +93,20 @@ fun IconChip(
             borderColor = Color.Transparent,
             disabledBorderColor = Color.Transparent
         )
+    )
+}
+
+@Composable
+fun StaticChip(
+    title: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        modifier = modifier
+            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(Spacings.l))
+            .padding(horizontal = Spacings.xs, vertical = Spacings.xxxs),
+        text = title,
+        color = MaterialTheme.colorScheme.onPrimary,
+        style = MaterialTheme.typography.labelMedium
     )
 }

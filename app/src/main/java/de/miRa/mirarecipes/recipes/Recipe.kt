@@ -1,5 +1,7 @@
 package de.miRa.mirarecipes.recipes
 
+import androidx.compose.runtime.mutableStateOf
+
 data class Recipe(
     val id: Int? = null,
     val title: String = "",
@@ -12,14 +14,14 @@ data class Recipe(
     val dateAdded: String? = null,
     val dateUpdated: String? = null,
 ) {
-    // TODO make dynamic
-    val isFavourite: Boolean
-        get() = tags.contains(favouriteTag)
+    var isFavourite = mutableStateOf(tags.contains(favouriteTag))
 
-    fun toggleFavourite() {
-        tags = if (isFavourite) {
+    fun updateFavouriteState() {
+        tags = if (tags.contains(favouriteTag)) {
+            isFavourite.value = false
             tags.minus(favouriteTag)
         } else {
+            isFavourite.value = true
             tags.plus(favouriteTag)
         }
     }

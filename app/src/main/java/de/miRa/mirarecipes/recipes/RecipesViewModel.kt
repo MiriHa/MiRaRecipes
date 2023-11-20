@@ -12,8 +12,12 @@ class RecipesViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(
         RecipesListUIState(
             recipesItems = generateTestRecipeList(),
-            filterTags = listOf(favouriteTag, "Essen", "Nudeln"),
-            selectedTags = listOf()
+            filterTags = listOf(favouriteTag, "Essen", "Nudeln", "Reis", "Dessert", "Rasmus is cute"),
+            selectedTags = listOf(),
+            recentRecipe = Recipe(
+                title = "Suppe",
+                tags = listOf("Essen", "Nudeln")
+            ),
         )
     )
 
@@ -24,6 +28,7 @@ class RecipesViewModel : ViewModel() {
         return mutableStateListOf(
             Recipe(
                 title = "Pizza",
+                description = "Round disk with delicious toppings, preferable Corn or Olives.",
                 tags = listOf("Essen")
             ),
             Recipe(
@@ -69,5 +74,6 @@ class RecipesViewModel : ViewModel() {
 data class RecipesListUIState(
     val recipesItems: List<Recipe>,
     val filterTags: List<String>,
-    val selectedTags: List<String>
+    val selectedTags: List<String>,
+    val recentRecipe: Recipe
 )

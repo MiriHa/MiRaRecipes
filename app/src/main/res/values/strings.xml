@@ -22,4 +22,5 @@
     <string name="cookbook_title_find">Find</string>
     <string name="cookbook_title_recents">Recent</string>
     <string name="cookbook_title_all">All</string>
+    <string name="cookbook_title_no_items">Nothing to show</string>
 </resources>

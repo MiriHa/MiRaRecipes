@@ -3,19 +3,23 @@ package de.miRa.mirarecipes.ui.composables
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,25 +43,24 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
+import de.miRa.mirarecipes.recipes.favouriteTag
 import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
 import de.miRa.mirarecipes.ui.theme.Spacings
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
 
+val listItemHeight = 100.dp
 
 @Composable
 fun RecipeListScreen(
     viewModel: RecipesViewModel,
-    //navController: NavHostController
+    navController: NavHostController? = null
 ) {
-    /* NavHost(navController = navController, startDestination = "recipeListScreen") {
-         //composable("recipeView") { RecipeView(recipe =) }
-     }*/
     val uiState by viewModel.uiState.collectAsState()
     val backgroundColor = MaterialTheme.colorScheme.background
 
@@ -81,10 +84,12 @@ fun RecipeListScreen(
             onTagSelected = { viewModel.onTagSelected(it) },
             onRemoveAllTags = { viewModel.removeAllSelectedTags() }
         )
+
         ItemList(
             searchInput = searchInput.text,
             selectedFilterTags = uiState.selectedTags,
-            items = uiState.recipesItems
+            items = uiState.recipesItems,
+            uiState.recentRecipe
         )
     }
 }
@@ -93,44 +98,85 @@ fun RecipeListScreen(
 fun ItemList(
     searchInput: String,
     selectedFilterTags: List<String>,
-    items: List<Recipe>
+    items: List<Recipe>,
+    recentRecipe: Recipe
 ) {
-    var filteredItems: List<Recipe> // TODO move search and filteredItems in viewmodel uistate
-    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+    var filteredItems: List<Recipe> = if (searchInput.isEmpty() && selectedFilterTags.isEmpty()) {
+        items
+    } else {
+        val resultList = ArrayList<Recipe>()
+        items.forEach { item ->
+            val isIncludedInSearchInput = item.title.lowercase(Locale.getDefault())
+                .contains(searchInput.lowercase(Locale.getDefault()))
+                .takeIf { searchInput.isNotEmpty() } ?: true
 
-        filteredItems = if (searchInput.isEmpty() && selectedFilterTags.isEmpty()) {
-            items
-        } else {
-            val resultList = ArrayList<Recipe>()
-            items.forEach { item ->
-                val isIncludedInSearchInput = item.title.lowercase(Locale.getDefault())
-                    .contains(searchInput.lowercase(Locale.getDefault()))
-                    .takeIf { searchInput.isNotEmpty() } ?: true
+            val isIncludedInTagInput = selectedFilterTags.all { selectedFilterTagItem ->
+                item.tags.contains(selectedFilterTagItem)
+            }.takeIf { selectedFilterTags.isNotEmpty() } ?: true
 
-                val isIncludedInTagInput = selectedFilterTags.all { selectedFilterTagItem ->
-                    item.tags.contains(selectedFilterTagItem)
-                }.takeIf { selectedFilterTags.isNotEmpty() } ?: true
-
-                if (isIncludedInSearchInput && isIncludedInTagInput) {
-                    resultList.add(item)
-                }
+            if (isIncludedInSearchInput && isIncludedInTagInput) {
+                resultList.add(item)
             }
-            resultList
         }
+        resultList
+    } // TODO move search and filteredItems in viewmodel uistate
 
-        items(filteredItems) { filteredItem ->
-            RecipeListItem(
-                recipe = filteredItem,
-                onItemClick = {
-                    // TODO navigate to subscreen
-                }
-            )
+    if (filteredItems.isEmpty()) {
+        EmptyList()
+    } else {
+        LazyColumn(modifier = Modifier.fillMaxWidth()) {
+            item {
+                Spacer(modifier = Modifier.height(Spacings.s))
+                Recent(recentRecipe, { /*TODO*/ }, { /*TODO*/ })
+                Spacer(modifier = Modifier.height(Spacings.s))
+                Text(
+                    text = stringResource(R.string.cookbook_title_all),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.inverseOnSurface
+                )
+            }
+
+            items(filteredItems) { filteredItem ->
+                RecipeListItem(
+                    recipe = filteredItem,
+                    onItemClick = {
+                        // TODO navigate to subscreen
+                    }
+                )
+            }
         }
 
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
+@Composable
+fun Recent(
+    recentRecipe: Recipe,
+    onItemClick: (Recipe) -> Unit,
+    openRecents: () -> Unit
+) {
+    Column {
+        Row(
+            modifier = Modifier.clickable { openRecents() },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(R.string.cookbook_title_recents),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.inverseOnSurface
+            )
+            Icon(
+                painter = painterResource(id = R.drawable.icon_forward),
+                modifier = Modifier.height(Spacings.m),
+                tint = MaterialTheme.colorScheme.inverseOnSurface,
+                contentDescription = null
+            )
+        }
+        Spacer(modifier = Modifier.height(Spacings.xs))
+        RecipeListItem(recipe = recentRecipe, onItemClick = onItemClick)
+    }
+}
+
 @Composable
 fun TagFilters(
     items: List<String>,
@@ -138,16 +184,18 @@ fun TagFilters(
     onTagSelected: (String) -> Unit,
     onRemoveAllTags: () -> Unit
 ) {
-    Column(modifier = Modifier.padding(horizontal = Spacings.s)) {
+    Column {
         Text(
             text = stringResource(R.string.cookbook_title_find),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.inverseOnSurface
         )
         Spacer(modifier = Modifier.height(Spacings.xs))
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.Center,
+        // TODO keep as flow row or make it scrollable
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.Start
         ) {
             items.forEach { tag ->
@@ -224,12 +272,31 @@ fun Header(
 }
 
 @Composable
+fun EmptyList() {
+    Column(
+        modifier = Modifier.fillMaxSize(),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = stringResource(id = R.string.cookbook_title_no_items),
+            style = MaterialTheme.typography.headlineMedium,
+            color = MaterialTheme.colorScheme.inverseOnSurface
+        )
+    }
+}
+
+@Composable
 fun RecipeListItem(
     recipe: Recipe,
     onItemClick: (Recipe) -> Unit
 ) {
+    val isFavourite by remember(recipe.isFavourite.value) { recipe.isFavourite }
+
     ItemCard(
-        modifier = Modifier.padding(bottom = Spacings.s)
+        modifier = Modifier
+            .clickable(onClick = { onItemClick(recipe) })
+            .height(listItemHeight)
     ) {
         Row(
             modifier = Modifier.padding(Spacings.s),
@@ -243,29 +310,44 @@ fun RecipeListItem(
                 painter = painterResource(id = R.drawable.icon_add),
                 contentDescription = null
             )
+            Spacer(modifier = Modifier.width(Spacings.s))
             Column(
                 modifier = Modifier
-                    .clickable(onClick = { onItemClick(recipe) })
-                    .padding(PaddingValues(8.dp, 16.dp))
+                    .fillMaxHeight()
+                    .weight(1f),
+                verticalArrangement = Arrangement.Bottom,
+                horizontalAlignment = Alignment.Start
             ) {
-                Text(text = recipe.title, fontSize = 18.sp)
-                Row(modifier = Modifier) {
-                    recipe.tags.forEach {
-                        Text(text = it, fontSize = 12.sp)
-                    }
+                // TODO space nicer
+                Text(
+                    modifier = Modifier.weight(1f),
+                    text = recipe.title,
+                    style = MaterialTheme.typography.titleSmall
+                )
+                recipe.description?.let {
+                    Text(
+                        text = recipe.description,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.inverseOnSurface,
+                        maxLines = 2
+                    )
                 }
                 ItemTagList(recipe.tags)
             }
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { recipe.toggleFavourite() }) {
+            IconButton(
+                onClick = {
+                    recipe.updateFavouriteState()
+                })
+            {
                 Icon(
-                    painterResource(if (recipe.isFavourite) R.drawable.icon_favorite_filled else R.drawable.icon_favorite),
+                    painterResource(if (isFavourite) R.drawable.icon_favorite_filled else R.drawable.icon_favorite),
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.inverseOnSurface
                 )
             }
         }
     }
+    Spacer(modifier = Modifier.height(Spacings.s))
 
 }
 
@@ -273,15 +355,10 @@ fun RecipeListItem(
 @Composable
 fun ItemTagList(
     tagItems: List<String>
-){
-    FlowRow(
-    ) {
-        tagItems.forEach { tag ->
-            // TODO create DIsplaychip
-            TagChip(
-                label = tag,
-                enabled = false
-            )
+) {
+    FlowRow {
+        tagItems.filter { it != favouriteTag }.forEach { tag ->
+            StaticChip(title = tag, modifier = Modifier.padding(end = Spacings.xs))
         }
     }
 }
