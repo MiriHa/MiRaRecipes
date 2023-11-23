@@ -12,10 +12,10 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
 import com.google.firebase.database.database
+import de.miRa.mirarecipes.database.DatabaseCom
 import de.miRa.mirarecipes.recipes.RecipesViewModel
 import de.miRa.mirarecipes.ui.composables.RecipeListScreen
 import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
-import kotlin.system.exitProcess
 
 class MainActivity : ComponentActivity() {
 
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
 //            Firebase.database.useEmulator("127.0.0.1", 9000)
 //            Firebase.auth.useEmulator("127.0.0.1", 9099)
 //        }
-
+        Firebase.database.setPersistenceEnabled(true)
         auth = Firebase.auth
 
         auth.signInWithEmailAndPassword("lugi6@live.de", "123456")
@@ -43,6 +43,9 @@ class MainActivity : ComponentActivity() {
                 }
 
             }
+
+        val databaseCom = DatabaseCom()
+
         setContent {
             MiRaRecipesTheme {
                 // A surface container using the 'background' color from the theme
@@ -50,7 +53,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    RecipeListScreen(recipesViewModel, /*navController*/)
+                    RecipeListScreen(recipesViewModel, databaseCom::increment_counter_in_DB /*navController*/)
 
                 }
             }

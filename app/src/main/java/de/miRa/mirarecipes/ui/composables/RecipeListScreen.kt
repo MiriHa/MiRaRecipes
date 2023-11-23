@@ -1,6 +1,5 @@
 package de.miRa.mirarecipes.ui.composables
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,10 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -37,48 +32,20 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
-import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
 import de.miRa.mirarecipes.ui.theme.Spacings
 import java.util.Locale
 import kotlin.math.PI
 import kotlin.math.cos
 
-
-public data class Counter (
-    var counter : Int
-)
-class databaseCom{
-    var counter = Counter(0)
-
-    fun create_counter_in_DB() {
-        val databaseReference: DatabaseReference = FirebaseDatabase.getInstance().getReference()
-        databaseReference.child("counter").push().setValue(counter, DatabaseReference.CompletionListener() {_, _ ->
-            Log.d("FIREBASE", "Counter added")
-        })
-    }
-
-    //TODO: Implement!!
-    fun retrieve_counter_from_DB()
-    {
-
-    }
-
-    fun increment_counter_in_DB()
-    {
-
-    }
-}
 @Composable
 fun RecipeListScreen(
     viewModel: RecipesViewModel,
+    increment: () -> Unit
     //navController: NavHostController
 ) {
     /* NavHost(navController = navController, startDestination = "recipeListScreen") {
@@ -121,7 +88,7 @@ fun RecipeListScreen(
             selectedFilterTags = uiState.selectedTags,
             items = uiState.recipesItems
         )
-        Button(onClick = { /*TODO*/ }) {
+        Button(onClick = increment ){
             
         }
     }
@@ -270,12 +237,4 @@ fun DrawScope.drawBackgroundWave(color: Color) {
         path = path,
         color = color
     )
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun ScreenPreview() {
-    MiRaRecipesTheme {
-        RecipeListScreen(RecipesViewModel())
-    }
 }
