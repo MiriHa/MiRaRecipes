@@ -1,4 +1,4 @@
-package de.miRa.mirarecipes.ui.composables
+package de.miRa.mirarecipes.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -41,14 +41,16 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavHostController
 import de.miRa.mirarecipes.R
 import de.miRa.mirarecipes.recipes.Recipe
 import de.miRa.mirarecipes.recipes.RecipesViewModel
 import de.miRa.mirarecipes.recipes.favouriteTag
-import de.miRa.mirarecipes.ui.theme.MiRaRecipesTheme
+import de.miRa.mirarecipes.ui.composables.IconChip
+import de.miRa.mirarecipes.ui.composables.ItemCard
+import de.miRa.mirarecipes.ui.composables.StaticChip
+import de.miRa.mirarecipes.ui.composables.TagChip
+import de.miRa.mirarecipes.ui.composables.TextField
 import de.miRa.mirarecipes.ui.theme.Spacings
 import java.util.Locale
 import kotlin.math.PI
@@ -57,9 +59,11 @@ import kotlin.math.cos
 val listItemHeight = 100.dp
 
 @Composable
-fun RecipeListScreen(
+fun Cookbook(
     viewModel: RecipesViewModel,
-    navController: NavHostController? = null
+    navigateToRecipeDetails: (String) -> Unit,
+    navigateToRecipeEdit: (String) -> Unit,
+    navigateToRecents: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val backgroundColor = MaterialTheme.colorScheme.background
@@ -89,7 +93,9 @@ fun RecipeListScreen(
             searchInput = searchInput.text,
             selectedFilterTags = uiState.selectedTags,
             items = uiState.recipesItems,
-            uiState.recentRecipe
+            uiState.recentRecipe,
+            openRecents = navigateToRecents,
+            openRecipeDetails = navigateToRecipeDetails
         )
     }
 }
@@ -99,7 +105,9 @@ fun ItemList(
     searchInput: String,
     selectedFilterTags: List<String>,
     items: List<Recipe>,
-    recentRecipe: Recipe
+    recentRecipe: Recipe,
+    openRecents: () -> Unit,
+    openRecipeDetails: (String) -> Unit
 ) {
     var filteredItems: List<Recipe> = if (searchInput.isEmpty() && selectedFilterTags.isEmpty()) {
         items
@@ -127,7 +135,7 @@ fun ItemList(
         LazyColumn(modifier = Modifier.fillMaxWidth()) {
             item {
                 Spacer(modifier = Modifier.height(Spacings.s))
-                Recent(recentRecipe, { /*TODO*/ }, { /*TODO*/ })
+                Recent(recentRecipe, openRecipeDetails, openRecents)
                 Spacer(modifier = Modifier.height(Spacings.s))
                 Text(
                     text = stringResource(R.string.cookbook_title_all),
@@ -152,7 +160,7 @@ fun ItemList(
 @Composable
 fun Recent(
     recentRecipe: Recipe,
-    onItemClick: (Recipe) -> Unit,
+    onItemClick: (String) -> Unit,
     openRecents: () -> Unit
 ) {
     Column {
@@ -289,13 +297,13 @@ fun EmptyList() {
 @Composable
 fun RecipeListItem(
     recipe: Recipe,
-    onItemClick: (Recipe) -> Unit
+    onItemClick: (String) -> Unit
 ) {
     val isFavourite by remember(recipe.isFavourite.value) { recipe.isFavourite }
 
     ItemCard(
         modifier = Modifier
-            .clickable(onClick = { onItemClick(recipe) })
+            .clickable(onClick = { onItemClick(recipe.recipeID) })
             .height(listItemHeight)
     ) {
         Row(
@@ -388,10 +396,12 @@ fun DrawScope.drawBackgroundWave(color: Color) {
     )
 }
 
+/*
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun ScreenPreview() {
     MiRaRecipesTheme {
-        RecipeListScreen(RecipesViewModel())
+        Cookbook(RecipesViewModel())
     }
 }
+*/

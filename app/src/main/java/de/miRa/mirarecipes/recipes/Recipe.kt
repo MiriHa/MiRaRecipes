@@ -1,9 +1,11 @@
 package de.miRa.mirarecipes.recipes
 
 import androidx.compose.runtime.mutableStateOf
+import java.time.OffsetDateTime
 
 data class Recipe(
     val id: Int? = null,
+    val recipeID: String = "",
     val title: String = "",
     val featuredImage: String? = null,
     var tags: List<String> = listOf(),
@@ -12,7 +14,7 @@ data class Recipe(
     val cookingInstructions: List<String>? = null,
     val ingredients: List<Ingredient> = listOf(),
     val dateAdded: String? = null,
-    val dateUpdated: String? = null,
+    val dateOpened: OffsetDateTime? = null,
 ) {
     var isFavourite = mutableStateOf(tags.contains(favouriteTag))
 

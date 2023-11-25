@@ -10,15 +10,7 @@ import kotlinx.coroutines.flow.update
 class RecipesViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(
-        RecipesListUIState(
-            recipesItems = generateTestRecipeList(),
-            filterTags = listOf(favouriteTag, "Essen", "Nudeln", "Reis", "Dessert", "Rasmus is cute"),
-            selectedTags = listOf(),
-            recentRecipe = Recipe(
-                title = "Suppe",
-                tags = listOf("Essen", "Nudeln")
-            ),
-        )
+        generateUIstate()
     )
 
     val uiState: StateFlow<RecipesListUIState>
@@ -43,6 +35,16 @@ class RecipesViewModel : ViewModel() {
                 title = "Nudelsalat",
                 tags = listOf("Nudeln", favouriteTag)
             )
+        )
+    }
+
+    fun generateUIstate(): RecipesListUIState {
+        val list = generateTestRecipeList()
+        return  RecipesListUIState(
+            recipesItems = list,
+            filterTags = listOf(favouriteTag, "Essen", "Nudeln", "Reis", "Dessert", "Rasmus is cute"),
+            selectedTags = listOf(),
+            recentRecipe = list.last() // TODO how to find most recent?
         )
     }
 
